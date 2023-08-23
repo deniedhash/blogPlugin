@@ -76,7 +76,7 @@ async function checkClose() {
       console.log('Element Closed')
       xVal = 1298
       console.log('Set xVal to 1298')
-      setupMutationObserver();
+      // setupMutationObserver();
     }, 500)
   } else {
     console.log('Close not found. Waiting for it to exist', errorCloseCount)
