@@ -8,6 +8,7 @@ let xVal = 0
 
 logM()
 checkConvToken()
+checkIframe()
 
 async function logM() {
   console.log("Starting the load of UCHAT Script");
