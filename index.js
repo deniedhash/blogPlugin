@@ -1,11 +1,11 @@
 let refreshValue = 0
-let content
 let errorCount = 0
 let errorCheckCount = 0
 let errorCloseCount = 0
 const random = Math.random()
 const randomNumber = Math.floor(random * 9) + 1
 let xVal = 0
+let content
 let userns
 let scrollCheck = 0
 let chatBotOpenCloseCheck = "close"
@@ -15,6 +15,7 @@ let firstMessageIdleTimer
 let messageIntervalCheck = "not set"
 let recheckTimer = 500
 let scrollingTimer
+let firstMessageSent
 
 logM()
 checkConvToken()
@@ -232,6 +233,7 @@ function sendFirstMessage() {
 
       try {
         content = await getVisibleParagraphs()
+        console.log(content)
         console.log("OK")
       } catch (error) {
         console.error('Error while getting visible paragraphs:', error)
@@ -244,7 +246,7 @@ function sendFirstMessage() {
         firstMessageSent = "sent"
         console.log(firstMessageSent)
 
-        // window.addEventListener('scroll', subsequentMessageScroll)
+        window.addEventListener('scroll', subsequentMessageScroll)
 
       }
       catch (error){
@@ -345,4 +347,41 @@ async function postDataToAPI(data, userns) {
     .catch((error) => {
       console.error('Error:', error)
     })
+}
+
+function subsequentMessageScroll() {
+  if (scrollingTimer) {
+    clearTimeout(scrollingTimer)
+  }
+  if (numberOfMessagesSent < maxMessages) {
+    scrollingTimer = setTimeout(async function checkPElementsAndSend() {
+      if (firstMessageSent === "sent" && chatBotOpenCloseCheck === "close") {
+
+        try {
+          content = await getVisibleParagraphs()
+        } catch (error) {
+          console.error('Error while getting visible paragraphs:', error)
+        }
+
+        try {
+          await postDataToAPI(content, userns)
+          console.log("Subsequent Message Number: " + numberOfMessagesSent)
+          numberOfMessagesSent = numberOfMessagesSent + 1
+          if (numberOfMessagesSent === maxMessages) {
+            window.removeEventListener('scroll', subsequentMessageScroll)
+            console.log("Removed Event Listener")
+          }
+
+        } catch {
+          console.log('ERROR')
+        }
+
+      } else {
+        clearTimeout(scrollingTimer)
+        scrollingTimer = setTimeout(checkPElementsAndSend, recheckTimer)
+      }
+
+    }, subsequentMessageTimer)
+  }
+
 }
