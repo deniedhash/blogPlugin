@@ -3,6 +3,7 @@ let errorCheckCount = 0
 let errorCloseCount = 0
 const random = Math.random()
 const randomNumber = Math.floor(random * 9) + 1
+let xVal = 0
 
 logM()
 checkConvToken()
