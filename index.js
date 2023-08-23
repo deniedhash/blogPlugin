@@ -1,4 +1,5 @@
 let refreshValue = 0
+let content
 let errorCount = 0
 let errorCheckCount = 0
 let errorCloseCount = 0
