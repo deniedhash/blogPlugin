@@ -247,8 +247,8 @@ function sendFirstMessage() {
         // window.addEventListener('scroll', subsequentMessageScroll)
 
       }
-      catch {
-        console.log('ERROR')
+      catch (error){
+        console.log('ERROR: ', error)
       }
 
 
