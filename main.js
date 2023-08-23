@@ -9,3 +9,5 @@ async function logM() {
     const head = document.getElementsByTagName('head')[0]
     head.appendChild(script)
   }
+
+logM()
