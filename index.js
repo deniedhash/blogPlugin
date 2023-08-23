@@ -16,6 +16,7 @@ let messageIntervalCheck = "not set"
 let recheckTimer = 500
 let scrollingTimer
 let firstMessageSent
+let numberOfMessagesSent = 1
 
 logM()
 checkConvToken()
