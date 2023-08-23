@@ -7,6 +7,10 @@ const randomNumber = Math.floor(random * 9) + 1
 let xVal = 0
 let userns
 let scrollCheck = 0
+let chatBotOpenCloseCheck = "close"
+let navBarElementHeight
+
+let messageIntervalCheck = "not set"
 
 logM()
 checkConvToken()
@@ -80,7 +84,7 @@ async function checkClose() {
       console.log('Element Closed')
       xVal = 1298
       console.log('Set xVal to 1298')
-      // setupMutationObserver();
+      setupMutationObserver();
     }, 500)
   } else {
     console.log('Close not found. Waiting for it to exist', errorCloseCount)
@@ -117,7 +121,7 @@ async function retrieveUUIDandUSERNS() {
       let userdata = await sendUrl(urlsrc)
       console.log(userdata)
       userns = userdata.userdata.userns
-      console.log('USERNS' + userns)
+      console.log('USERNS: ' + userns)
       scrollCheck = 23
 
     } catch (error) {
@@ -175,4 +179,166 @@ async function sendUrl(src) {
     console.error('Error:', error)
 
   }
+}
+function setupMutationObserver() {
+  const visibleElement = document.querySelector(".bot-widget-holder.bot-elements--right.bot-elements--right");
+
+  if (!visibleElement) {
+    console.log("Element not found. Waiting and retrying...");
+    setTimeout(setupMutationObserver, 500);
+    return;
+  }
+
+  const observer = new MutationObserver((mutationsList, observer) => {
+    console.log(visibleElement)
+    console.log(window.getComputedStyle(visibleElement))
+    let impChecker = window.getComputedStyle(visibleElement).visibility;
+    let shadow = window.getComputedStyle(visibleElement).boxShadow
+
+    if (impChecker === 'visible') {
+      if (shadow !== "none") {
+        chatBotOpenCloseCheck = "open"
+        console.log(chatBotOpenCloseCheck)
+      }
+      else {
+        chatBotOpenCloseCheck = "close"
+        console.log(chatBotOpenCloseCheck)
+
+        clearTimeout(scrollingTimer)
+      }
+    }
+
+
+    else {
+
+      chatBotOpenCloseCheck = "close"
+      console.log(chatBotOpenCloseCheck)
+
+      clearTimeout(scrollingTimer)
+    }
+
+  });
+
+  observer.observe(visibleElement, { attributes: true });
+}
+
+function sendFirstMessage() {
+  firstMessageIdleTimer = setTimeout(async function checkPElementsAndSend() {
+    if (scrollCheck === 23 && messageIntervalCheck === "set" && chatBotOpenCloseCheck === "close") {
+
+      try {
+        content = await getVisibleParagraphs()
+        console.log("OK")
+      } catch (error) {
+        console.error('Error while getting visible paragraphs:', error)
+      }
+
+      try {
+
+
+        await postDataToAPI(content, userns)
+        firstMessageSent = "sent"
+        console.log(firstMessageSent)
+
+        // window.addEventListener('scroll', subsequentMessageScroll)
+
+      }
+      catch {
+        console.log('ERROR')
+      }
+
+
+    } else {
+      clearTimeout(firstMessageIdleTimer)
+      firstMessageIdleTimer = setTimeout(checkPElementsAndSend, recheckTimer)
+    }
+
+  }, recheckTimer)
+
+
+}
+function setMessageInterval() {
+  messageIntervalCheck = "set"
+  sendFirstMessage()
+  console.log(messageIntervalCheck)
+}
+function setVar() {
+  setTimeout(setMessageInterval, firstMessageTimer)
+}
+function getNavBarHeight() {
+  const navBarElement = document.getElementById('navbarTop')
+
+  if (navBarElement) {
+    navBarElementHeight = navBarElement.offsetHeight;
+    console.log("MY HEIGHT", navBarElementHeight)
+  }
+}
+
+function newCall() {
+  setVar();
+  getNavBarHeight();
+}
+
+if (document.readyState === "complete") {
+  newCall()
+} else {
+  window.addEventListener('load', newCall);
+}
+
+async function getVisibleParagraphs() {
+  console.log('This works too')
+  console.log('Navbar height:', navBarElementHeight)
+  const containerDiv = document.querySelector('.flex.flex-col.items-start.justify-start.mt-4');
+  const paragraphs = Array.from(containerDiv.querySelectorAll('h1, h2, h3, h4, h5, h6, strong'));
+
+  let pageTop = 0 + navBarElementHeight
+
+  let visibleParagraphs = '';
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
+    const rect = paragraph.getBoundingClientRect();
+
+    if (rect.bottom >= pageTop && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)) {
+      visibleParagraphs = visibleParagraphs + paragraph.outerHTML;
+    }
+  }
+
+  const h1 = document.querySelector('h1');
+  let newData = "####\n" + (h1 ? h1.innerText : '') + "\n####\n****\n" + visibleParagraphs + "\n****";
+  return newData;
+}
+
+async function postDataToAPI(data, userns) {
+  const article = {
+    content: data,
+    userns: userns,
+  }
+
+  const jsonArticle = JSON.stringify(article)
+  console.log(article)
+
+
+  const url = 'https://blog-uchat-nudge.thechatman.ai:3001/postapi'
+
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonArticle,
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log(response.json())
+        console.log('Data posted successfully.')
+      } else {
+        console.log('Failed to post data. Status code:', response.status)
+        console.log(body)
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error)
+    })
 }
