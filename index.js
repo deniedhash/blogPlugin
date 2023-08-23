@@ -1,14 +1,84 @@
-let timeoutId;
+let refreshValue = 0
 
-function delayedHello() {
-  // Clear any existing timeout to prevent multiple logs
-  clearTimeout(timeoutId);
+logM()
+checkConvToken()
 
-  // Set a new timeout to log "Hello" after 3 seconds
-  timeoutId = setTimeout(() => {
-    console.log("Hello");
-  }, 3000);
+async function logM() {
+  console.log("Starting the load of UCHAT Script");
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.defer = true;
+  script.src = `https://www.uchat.com.au/js/widget/h0ey00a9hg9wjfyx/float.js?ref=blog--${randomNumber}`;
+
+  const head = document.getElementsByTagName("head")[0];
+  head.appendChild(script);
 }
 
-// Attach the delayedHello function to the scroll event
-window.addEventListener("scroll", delayedHello);
+
+async function checkConvToken() {
+  let newCookie = document.cookie
+  const strToCheck = 'conv_token'
+
+  if (newCookie.includes(strToCheck)) {
+    console.log('Conv_Token found')
+    clickandClose()
+  } else {
+    console.log('Conv_Token not found')
+    setTimeout(checkConvToken, 500)
+  }
+}
+
+function clickandClose() {
+  console.log('uChat widget script has been loaded.')
+
+  checkTarget()
+  checkClose()
+}
+
+async function checkTarget() {
+  const targetElement = document.querySelector('.bot-widget-bubble.bot-elements--right.bot-elements--right')
+  const element = document.getElementById('chatbot_live_chat_widget')
+
+  if (targetElement) {
+    setTimeout(() => {
+      targetElement.click()
+      element.style.visibility = "hidden"
+
+      console.log('Element clicked')
+      refreshValue = 6
+    }, 1500)
+  } else {
+    console.log('Element not found! Waiting for it to exist', errorCheckCount)
+    if (errorCheckCount < 250) {
+      setTimeout(checkTarget, 100)
+    }
+
+    errorCheckCount = errorCheckCount + 1
+  }
+}
+
+async function checkClose() {
+  const closeElement = document.querySelector(
+    '.bot-elements--right.bot-elements--right.bot-widget-bubble.bot--close'
+  )
+  const element = document.getElementById('chatbot_live_chat_widget')
+
+  if (closeElement && refreshValue === 6) {
+    setTimeout(() => {
+      closeElement.click()
+      element.style.visibility = "visible"
+      console.log('Element Closed')
+      xVal = 1298
+      console.log('Set xVal to 1298')
+      setupMutationObserver();
+    }, 500)
+  } else {
+    console.log('Close not found. Waiting for it to exist', errorCloseCount)
+    if (errorCloseCount < 250) {
+      setTimeout(checkClose, 100)
+    }
+
+    errorCloseCount = errorCloseCount + 1
+  }
+}
