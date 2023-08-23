@@ -9,7 +9,8 @@ let userns
 let scrollCheck = 0
 let chatBotOpenCloseCheck = "close"
 let navBarElementHeight
-
+let firstMessageTimer = 10000
+let firstMessageIdleTimer
 let messageIntervalCheck = "not set"
 
 logM()
