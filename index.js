@@ -17,6 +17,7 @@ let recheckTimer = 500
 let scrollingTimer
 let firstMessageSent
 let numberOfMessagesSent = 1
+let maxMessages = 3
 
 logM()
 checkConvToken()
