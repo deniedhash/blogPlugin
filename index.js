@@ -5,6 +5,7 @@ let errorCloseCount = 0
 const random = Math.random()
 const randomNumber = Math.floor(random * 9) + 1
 let xVal = 0
+let userns
 
 logM()
 checkConvToken()
@@ -95,7 +96,7 @@ async function checkIframe() {
 
   if (iframeCheck && xVal === 1298) {
     console.log('Before Retrieval Call')
-    // retrieveUUIDandUSERNS()
+    retrieveUUIDandUSERNS()
   } else {
     console.log('Waiting for Iframe to exist or Element not closed yet', errorCount)
     if (errorCount < 250) {
@@ -103,6 +104,74 @@ async function checkIframe() {
     }
 
     errorCount = errorCount + 1
+
+  }
+}
+async function retrieveUUIDandUSERNS() {
+  setTimeout(async () => {
+    try {
+      let url = await getDocumentFromID()
+      console.log('URL: ' + url)
+      let urlsrc = await updateUrl(url)
+      let userdata = await sendUrl(urlsrc)
+      console.log(userdata)
+      userns = userdata.userdata.userns
+      console.log('USERNS' + userns)
+      scrollCheck = 23
+
+    } catch (error) {
+      console.error('Error while getting elements from URL:', error)
+    }
+  }, 2000)
+}
+
+async function getDocumentFromID() {
+  const iframeElement = document.getElementById('chatbot_live_chat_widget')
+  console.log(iframeElement.src)
+
+  console.log(iframeElement)
+
+  return iframeElement.src
+}
+
+async function updateUrl(url) {
+  let x
+  console.log(url)
+  const convToken = await getCookie('conv_token')
+  let myCookie = 'conv_token=' + convToken
+  const strToCheck = 'conv_token'
+
+  if (url.includes(strToCheck)) {
+    x = url
+  } else {
+    x = url + '&' + myCookie
+  }
+
+  console.log('UPDATED URL: ' + x)
+
+  return x
+
+}
+async function getCookie(name) {
+  const cookies = document.cookie.split(';')
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim()
+    if (cookie.startsWith(name + '=')) {
+      return cookie.substring(name.length + 1)
+    }
+  }
+  return null
+}
+
+async function sendUrl(src) {
+  const url = 'https://blog-uchat-nudge.thechatman.ai:3001/getuserns?url=' + src
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    return data
+
+  } catch (error) {
+    console.error('Error:', error)
 
   }
 }
